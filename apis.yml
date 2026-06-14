@@ -1,0 +1,52 @@
+aid: basehub
+name: BaseHub
+description: "GraphQL-first documentation and content platform where content is queried via a TypeScript-native GraphQL client with full type safety generated from the content schema."
+type: Index
+image: https://kinlane-productions2.s3.amazonaws.com/apis-json/apis-json-logo.jpg
+url: https://basehub.com
+baseURL: https://api.basehub.com/graphql
+created: 2026-06-14
+modified: 2026-06-14
+specificationVersion: '0.19'
+tags:
+  - GraphQL
+  - Headless CMS
+  - Content Management
+  - AI-Native
+  - TypeScript
+apis:
+  - aid: basehub:api
+    name: BaseHub API
+    description: "GraphQL API for programmatically querying and mutating content in BaseHub repositories. Authenticated via x-basehub-token header, with a TypeScript-native SDK that generates type-safe clients from the content schema."
+    tags:
+      - GraphQL
+      - Content Management
+      - Headless CMS
+      - TypeScript
+    humanURL: https://docs.basehub.com/api-reference
+    baseURL: https://api.basehub.com/graphql
+    properties:
+      - url: https://docs.basehub.com/api-reference
+        type: Documentation
+      - url: graphql/basehub-graphql.md
+        type: GraphQL
+common:
+  - url: https://basehub.com
+    type: Website
+  - url: https://docs.basehub.com
+    type: Documentation
+  - url: https://www.linkedin.com/company/basehubai
+    type: LinkedIn
+  - url: https://github.com/basehub-ai
+    type: GitHubOrganization
+  - url: https://basehub.com/pricing
+    type: Pricing
+  - url: plans/basehub-plans.md
+    type: Plans
+  - url: rate-limits/basehub-rate-limits.md
+    type: RateLimits
+  - url: finops/basehub-finops.md
+    type: FinOps
+maintainers:
+  - FN: Kin Lane
+    email: kin@apievangelist.com
