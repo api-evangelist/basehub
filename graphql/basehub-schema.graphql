@@ -1,0 +1,980 @@
+"""
+BaseHub GraphQL Schema
+Endpoint: https://api.basehub.com/graphql
+Authentication: x-basehub-token header (per-repository token)
+
+NOTE: BaseHub schemas are dynamically generated from each repository's
+content model. The types below represent the stable built-in system types
+present in every BaseHub repository, plus the example content structure
+from the official basehub-ai/basehub playground repository. User-defined
+content blocks extend the Query type per workspace.
+
+Source: basehub-ai/basehub (playground/src/lib/basehub/basehub-types.d.ts)
+Docs: https://docs.basehub.com/api-reference/graphql-api
+"""
+
+# ─── Scalars ─────────────────────────────────────────────────────────────────
+
+"""ISO 8601 date-time string."""
+scalar DateTime
+
+"""Arbitrary JSON value."""
+scalar JSON
+
+"""
+Supported syntax-highlighting language identifiers for CodeSnippet blocks.
+The full set is defined at runtime by each repository's configuration.
+"""
+scalar CodeSnippetLanguage
+
+"""
+Rich text node tree (ProseMirror-compatible JSON).
+"""
+scalar BSHBRichTextContentSchema
+
+"""
+Table-of-contents node array extracted from rich text.
+"""
+scalar BSHBRichTextTOCSchema
+
+# ─── Enums ────────────────────────────────────────────────────────────────────
+
+"""Scope for analytics keys exposed by block documents."""
+enum AnalyticsKeyScope {
+  """Read analytics data (exposes data publicly if used on the frontend)."""
+  query
+  """Ingest / send analytics events only."""
+  send
+}
+
+"""Status values for asynchronous mutation transactions."""
+enum TransactionStatusEnum {
+  Scheduled
+  Running
+  Completed
+  Failed
+  Cancelled
+}
+
+"""Format options for the _structure query."""
+enum _StructureFormatEnum {
+  json
+  xml
+}
+
+"""Resolution strategy for reference targets in the structure query."""
+enum _ResolveTargetsWithEnum {
+  id
+  objectName
+}
+
+# ─── System / Utility Types ───────────────────────────────────────────────────
+
+"""
+System metadata attached to every block document (Document, Component,
+Instance, and List block types).
+"""
+type BlockDocumentSys {
+  """Dot-separated API name path from the repository root."""
+  apiNamePath: String!
+  """ISO 8601 creation timestamp."""
+  createdAt: String!
+  """Content hash of the block."""
+  hash: String!
+  """Unique block identifier."""
+  id: ID!
+  """Slash-separated ID path from the repository root."""
+  idPath: String!
+  """ISO 8601 last-modified timestamp."""
+  lastModifiedAt: String!
+  """URL-safe slug derived from the block title."""
+  slug: String!
+  """Slash-separated slug path from the repository root."""
+  slugPath: String!
+  """Human-readable title of the block."""
+  title: String!
+}
+
+"""Pagination metadata returned by list blocks."""
+type ListMeta {
+  """Item count after filtering, before pagination."""
+  filteredCount: Int!
+  """Total item count before any filtering or pagination."""
+  totalCount: Int!
+}
+
+"""Search highlight result for a matched field."""
+type SearchHighlight {
+  """Field path that matched (e.g. "title", "body.content")."""
+  by: String!
+  """HTML snippet with matched terms wrapped in <mark> tags."""
+  snippet: String!
+}
+
+"""A variant (e.g. language) defined on a variant set block."""
+type Variant {
+  """API name used to select this variant in queries."""
+  apiName: String!
+  """Display color associated with this variant."""
+  color: String!
+  """Unique variant identifier."""
+  id: String!
+  """Whether this variant is the default."""
+isDefault: Boolean!
+  """Human-readable variant label."""
+  label: String!
+}
+
+# ─── Primitive Block Types ────────────────────────────────────────────────────
+
+"""
+Image block. URL supports Cloudflare Image Resizing arguments for
+on-the-fly transformations.
+"""
+type BlockImage {
+  """Alt text for the image, if set."""
+  alt: String
+  """Aspect ratio string (e.g. "16/9")."""
+  aspectRatio: String!
+  """Base64-encoded blur placeholder data URL."""
+  blurDataURL: String!
+  """Original file name."""
+  fileName: String!
+  """File size in bytes."""
+  fileSize: Int!
+  """Image height in pixels."""
+  height: Int!
+  """Unix timestamp of last modification."""
+  lastModified: Float!
+  """MIME type (e.g. "image/jpeg")."""
+  mimeType: String!
+  """
+  @deprecated Renamed to blurDataURL to match Next.js Image naming convention.
+  """
+  placeholderURL: String! @deprecated(reason: "Renamed to blurDataURL to match Next.js Image's naming convention.")
+  """@deprecated Use url instead."""
+  rawUrl: String! @deprecated(reason: "Use url instead.")
+  """Thumbhash placeholder string."""
+  thumbhash: String!
+  """
+  Cloudflare-resized image URL. Accepts optional transformation arguments.
+  See: https://developers.cloudflare.com/images/transform-images/transform-via-workers/#fetch-options
+  """
+  url(
+    anim: String
+    background: String
+    blur: Int
+    border: String
+    brightness: Int
+    compression: String
+    contrast: Int
+    dpr: Int
+    fit: String
+    format: String
+    gamma: String
+    gravity: String
+    height: Int
+    metadata: String
+    quality: Int
+    rotate: String
+    sharpen: String
+    trim: String
+    width: Int
+  ): String!
+  """Image width in pixels."""
+  width: Int!
+}
+
+"""Video block."""
+type BlockVideo {
+  """Aspect ratio string (e.g. "16/9")."""
+  aspectRatio: String!
+  """Duration in seconds."""
+  duration: Float!
+  fileName: String!
+  fileSize: Int!
+  height: Int!
+  lastModified: Float!
+  mimeType: String!
+  url: String!
+  width: Int!
+}
+
+"""Audio block."""
+type BlockAudio {
+  """Duration in seconds."""
+  duration: Float!
+  fileName: String!
+  fileSize: Int!
+  lastModified: Float!
+  mimeType: String!
+  url: String!
+}
+
+"""Generic file block."""
+type BlockFile {
+  fileName: String!
+  fileSize: Int!
+  lastModified: Float!
+  mimeType: String!
+  url: String!
+}
+
+"""Union of all media block types."""
+union MediaBlock = BlockAudio | BlockFile | BlockImage | BlockVideo
+
+"""Code snippet block."""
+type BlockCodeSnippet {
+  """Languages allowed for this snippet."""
+  allowedLanguages: [CodeSnippetLanguage!]!
+  """Raw source code."""
+  code: String!
+  """
+  Syntax-highlighted HTML output.
+  @deprecated Figuring out the correct api.
+  """
+  html(
+    """Theme for the code snippet."""
+    theme: String
+  ): String! @deprecated(reason: "Figuring out the correct api.")
+  """Language identifier for syntax highlighting."""
+  language: CodeSnippetLanguage!
+}
+
+"""Color block."""
+type BlockColor {
+  b: Int!
+  g: Int!
+  """Hexadecimal color string (e.g. "#ff0000")."""
+  hex: String!
+  """HSL color string (e.g. "hsl(0, 100%, 50%)")."""
+  hsl: String!
+  r: Int!
+  """RGB color string (e.g. "rgb(255, 0, 0)")."""
+  rgb: String!
+}
+
+"""Open Graph image block."""
+type BlockOgImage {
+  height: Int!
+  url: String!
+  width: Int!
+}
+
+# ─── Rich Text Types ──────────────────────────────────────────────────────────
+
+"""Rich text JSON representation (base type)."""
+type BaseRichTextJson {
+  """Serialized block references within the rich text."""
+  blocks: String!
+  """ProseMirror-compatible content node tree."""
+  content: BSHBRichTextContentSchema!
+  """Table of contents extracted from headings."""
+  toc: BSHBRichTextTOCSchema!
+}
+
+"""Rich text body JSON, omitting blocks array."""
+type BodyRichText {
+  content: BSHBRichTextContentSchema!
+  toc: BSHBRichTextTOCSchema!
+}
+
+"""Rich text subtitle JSON."""
+type SubtitleRichText {
+  content: BSHBRichTextContentSchema!
+  toc: BSHBRichTextTOCSchema!
+}
+
+"""Union of all rich text JSON types."""
+union RichTextJson = BaseRichTextJson | BodyRichText | SubtitleRichText
+
+"""
+Rich text body block with multiple output formats.
+Used for article body content.
+"""
+type Body {
+  """
+  HTML representation. Headings get auto-generated id slugs by default.
+  """
+  html(
+    """Auto-generate unique id for each heading. Defaults to true."""
+    slugs: Boolean
+    """Insert table of contents at the beginning of HTML."""
+    toc: Boolean
+  ): String!
+  """JSON representation with ProseMirror content tree."""
+  json: BodyRichText!
+  """Markdown representation."""
+  markdown: String!
+  """Plain text (no markup)."""
+  plainText: String!
+  """Estimated reading time in minutes."""
+  readingTime(
+    """Words per minute. Defaults to 183."""
+    wpm: Int
+  ): Int!
+}
+
+"""
+Rich text subtitle block.
+"""
+type Subtitle {
+  html(
+    slugs: Boolean
+    toc: Boolean
+  ): String!
+  json: SubtitleRichText!
+  markdown: String!
+  plainText: String!
+  readingTime(wpm: Int): Int!
+}
+
+"""Union of rich text block types."""
+union BlockRichText = Body | Subtitle
+
+# ─── Filter Input Types ───────────────────────────────────────────────────────
+
+"""Filter operations for String fields."""
+input StringFilter {
+  contains: String
+  endsWith: String
+  eq: String
+  in: [String!]
+  isNull: Boolean
+  matches: StringMatchesFilter
+  notEq: String
+  notIn: [String!]
+  startsWith: String
+}
+
+"""Regex/pattern filter for string fields."""
+input StringMatchesFilter {
+  caseSensitive: Boolean
+  pattern: String!
+}
+
+"""Filter operations for DateTime fields."""
+input DateFilter {
+  eq: DateTime
+  isAfter: DateTime
+  isBefore: DateTime
+  isNull: Boolean
+  neq: DateTime
+  onOrAfter: DateTime
+  onOrBefore: DateTime
+}
+
+"""Filter operations for numeric fields."""
+input NumberFilter {
+  eq: Float
+  gt: Float
+  gte: Float
+  isNull: Boolean
+  lt: Float
+  lte: Float
+  neq: Float
+}
+
+"""Filter operations for Select (string enum) fields."""
+input SelectFilter {
+  excludes: String
+  excludesAll: [String!]
+  includes: String
+  includesAll: [String!]
+  includesAny: [String!]
+  isEmpty: Boolean
+}
+
+"""Filter operations for list fields."""
+input ListFilter {
+  isEmpty: Boolean
+  length: Int
+}
+
+# ─── Repository System Types ──────────────────────────────────────────────────
+
+"""Repository-level system metadata."""
+type RepoSys {
+  """Paginated list of branches in this repository."""
+  branches(limit: Int, offset: Int): _Branches!
+  """URL to the BaseHub dashboard for this repository."""
+  dashboardUrl: String!
+  """URL to fork this repository."""
+  forkUrl: String!
+  """Current content hash of the repository."""
+  hash: String!
+  id: ID!
+  """Playground information if applicable."""
+  playgroundInfo: _PlaygroundInfo
+  slug: String!
+  title: String!
+}
+
+"""List of branches with pagination metadata."""
+type _Branches {
+  _meta: ListMeta!
+  items: [_BranchInfo!]!
+}
+
+"""Metadata for a single repository branch."""
+type _BranchInfo {
+  archivedAt: String
+  archivedBy: String
+  authorId: String
+  contributors: [String!]
+  createdAt: String!
+  description: String
+  git: _GitInfo
+  headCommit: _CommitInfo
+  headCommitId: String
+  id: ID!
+  inlineSuggestionAppliedAt: String
+  isDefault: Boolean!
+  isInlineSuggestion: Boolean
+  name: String!
+  playgroundId: String
+  rollbackCommitId: String
+  rollbackIsoDate: String
+  sourceBranchId: String
+  updatedAt: String
+  workingRootBlockId: String
+}
+
+"""Git integration info for a branch."""
+type _GitInfo {
+  branch: String!
+  deploymentUrl: String
+}
+
+"""Metadata for a single commit."""
+type _CommitInfo {
+  authorId: String!
+  branchId: String!
+  contributors: [String!]
+  createdAt: String!
+  hash: String!
+  id: String!
+  mergeParentCommitId: String
+  message: String!
+  parentCommitId: String
+  """Whether this commit is from a playground branch."""
+  playgroundId: String
+  repoId: String!
+  rootBlockId: String!
+}
+
+"""Playground session information."""
+type _PlaygroundInfo {
+  claimUrl: String
+  editUrl: String!
+  expiresAt: String
+  id: String
+}
+
+# ─── Agent Types ──────────────────────────────────────────────────────────────
+
+"""Configuration block for a custom AI agent."""
+type _AgentStart {
+  _agentKey: String!
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  accent: String!
+  avatar: String!
+  chatUrl: String!
+  commit: Boolean!
+  description: String!
+  edit: Boolean!
+  embedUrl: String!
+  getUserInfo: Boolean!
+  grayscale: String!
+  manageBranches: Boolean!
+  mcpUrl: String!
+  model: String!
+  openRouterKey: String
+  searchTheWeb: Boolean!
+  slackInstallUrl: String!
+  systemPrompt: String!
+}
+
+"""Container for querying AI agents in the repository."""
+type _agents {
+  start: _AgentStart!
+}
+
+# ─── Component Instance Query Types ──────────────────────────────────────────
+
+"""
+_componentInstances query return type. Fields are generated per
+repository based on which components exist.
+"""
+type _components {
+  """All instances of the AuthorsItem component as a queryable list."""
+  authorsItem: authorsItem_AsList!
+  """All instances of the PostsItem component as a queryable list."""
+  postsItem: postsItem_AsList!
+}
+
+# ─── Example Content Model (Blog Template) ───────────────────────────────────
+#
+# The types below are from the canonical basehub-ai/basehub playground
+# repository and represent a typical content model. In a real repository, the
+# Query type will have fields named after your own document/list blocks.
+
+"""Author profile item."""
+type AuthorsItem {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  """Search highlight results for this item."""
+  _highlight: [SearchHighlight!]
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  avatar: BlockImage!
+}
+
+"""Order-by options for AuthorsItem lists."""
+enum AuthorsItemOrderByEnum {
+  _sys_createdAt__ASC
+  _sys_createdAt__DESC
+  _sys_hash__ASC
+  _sys_hash__DESC
+  _sys_id__ASC
+  _sys_id__DESC
+  _sys_lastModifiedAt__ASC
+  _sys_lastModifiedAt__DESC
+  _sys_slug__ASC
+  _sys_slug__DESC
+  _sys_title__ASC
+  _sys_title__DESC
+  avatar__ASC
+  avatar__DESC
+}
+
+"""Filter input for AuthorsItem list queries."""
+input AuthorsItemFilterInput {
+  AND: AuthorsItemFilterInput
+  OR: AuthorsItemFilterInput
+  _id: StringFilter
+  _slug: StringFilter
+  _sys_apiNamePath: StringFilter
+  _sys_createdAt: DateFilter
+  _sys_hash: StringFilter
+  _sys_id: StringFilter
+  _sys_idPath: StringFilter
+  _sys_lastModifiedAt: DateFilter
+  _sys_slug: StringFilter
+  _sys_slugPath: StringFilter
+  _sys_title: StringFilter
+  _title: StringFilter
+}
+
+"""Search configuration for AuthorsItem full-text search."""
+input AuthorsItemSearchInput {
+  """Fields to search within."""
+  by: [String!]
+  """Search query string."""
+  q: String
+}
+
+"""Authors collection (list block)."""
+type Authors {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _meta: ListMeta!
+  """Key for frontend search integration."""
+  _searchKey: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  """Returns the first matching item, or null if none exist."""
+  item: AuthorsItem
+  """Returns items after applying filters, ordering, and pagination."""
+  items(
+    filter: AuthorsItemFilterInput
+    first: Int
+    orderBy: AuthorsItemOrderByEnum
+    search: AuthorsItemSearchInput
+    skip: Int
+  ): [AuthorsItem!]!
+}
+
+"""All instances of AuthorsItem as a queryable list (via _componentInstances)."""
+type authorsItem_AsList {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _meta: ListMeta!
+  _searchKey: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  item: AuthorsItem
+  items(
+    filter: AuthorsItemFilterInput
+    first: Int
+    orderBy: AuthorsItemOrderByEnum
+    search: AuthorsItemSearchInput
+    skip: Int
+  ): [AuthorsItem!]!
+}
+
+"""A single blog post."""
+type PostsItem {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _highlight: [SearchHighlight!]
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  """Reference to the post author."""
+  author: AuthorsItem!
+  """Main article body (rich text)."""
+  body: Body!
+  """Cover image for the post."""
+  coverImage: BlockImage!
+  """ISO 8601 publication date."""
+  date: String!
+  """Short excerpt / summary."""
+  excerpt: String!
+}
+
+"""Order-by options for PostsItem lists."""
+enum PostsItemOrderByEnum {
+  _sys_createdAt__ASC
+  _sys_createdAt__DESC
+  _sys_hash__ASC
+  _sys_hash__DESC
+  _sys_id__ASC
+  _sys_id__DESC
+  _sys_lastModifiedAt__ASC
+  _sys_lastModifiedAt__DESC
+  _sys_slug__ASC
+  _sys_slug__DESC
+  _sys_title__ASC
+  _sys_title__DESC
+  author__ASC
+  author__DESC
+  body__ASC
+  body__DESC
+  coverImage__ASC
+  coverImage__DESC
+  date__ASC
+  date__DESC
+  excerpt__ASC
+  excerpt__DESC
+}
+
+"""Filter input for PostsItem list queries."""
+input PostsItemFilterInput {
+  AND: PostsItemFilterInput
+  OR: PostsItemFilterInput
+  _id: StringFilter
+  _slug: StringFilter
+  _sys_apiNamePath: StringFilter
+  _sys_createdAt: DateFilter
+  _sys_hash: StringFilter
+  _sys_id: StringFilter
+  _sys_idPath: StringFilter
+  _sys_lastModifiedAt: DateFilter
+  _sys_slug: StringFilter
+  _sys_slugPath: StringFilter
+  _sys_title: StringFilter
+  _title: StringFilter
+  date: DateFilter
+  excerpt: StringFilter
+}
+
+"""Search configuration for PostsItem full-text search."""
+input PostsItemSearchInput {
+  by: [String!]
+  q: String
+}
+
+"""Posts collection (list block)."""
+type Posts {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _meta: ListMeta!
+  _searchKey: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  item: PostsItem
+  items(
+    filter: PostsItemFilterInput
+    first: Int
+    orderBy: PostsItemOrderByEnum
+    search: PostsItemSearchInput
+    skip: Int
+    variants: Language__VariantsInput
+  ): [PostsItem!]!
+}
+
+"""All instances of PostsItem as a queryable list (via _componentInstances)."""
+type postsItem_AsList {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _meta: ListMeta!
+  _searchKey: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  item: PostsItem
+  items(
+    filter: PostsItemFilterInput
+    first: Int
+    orderBy: PostsItemOrderByEnum
+    search: PostsItemSearchInput
+    skip: Int
+  ): [PostsItem!]!
+}
+
+"""Language variant definition."""
+type Language {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  """Available variants for this language set."""
+  variants: [Variant!]!
+}
+
+"""Supported language codes (example enum from blog-template repository)."""
+enum LanguageEnum {
+  en
+  es
+  pt
+}
+
+"""Variant selector input for language-based content variants."""
+input Language__VariantsInput {
+  language: LanguageEnum
+}
+
+"""Translator webhook configuration."""
+type Translator {
+  """
+  Webhook secret used to verify authenticity of webhook requests
+  and to type the webhook payload.
+  """
+  webhookSecret: String!
+}
+
+"""Site settings document block."""
+type Settings {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  """Language variant set."""
+  language: Language!
+  """Translator webhook configuration."""
+  translator: Translator!
+}
+
+"""Blog root document block."""
+type Blog {
+  _analyticsKey(scope: AnalyticsKeyScope): String!
+  _dashboardUrl: String!
+  _id: String!
+  _idPath: String!
+  _slug: String!
+  _slugPath: String!
+  _sys: BlockDocumentSys!
+  _title: String!
+  """Authors collection nested under the blog."""
+  authors: Authors!
+  morePosts: String!
+  """Posts collection nested under the blog."""
+  posts: Posts!
+  """Blog subtitle rich text."""
+  subtitle: Subtitle!
+}
+
+"""
+Union of all block document types in the repository.
+The set of members is dynamic per repository.
+"""
+union BlockDocument = Authors | AuthorsItem | Blog | Language | Posts | PostsItem | Settings | _AgentStart | authorsItem_AsList | postsItem_AsList
+
+"""
+Union of all list block types in the repository.
+"""
+union BlockList = Authors | Posts | authorsItem_AsList | postsItem_AsList
+
+# ─── Mutation Types ───────────────────────────────────────────────────────────
+
+"""Result of a getUploadSignedURL mutation."""
+type GetUploadSignedURL {
+  """Pre-signed URL for uploading the file (PUT request)."""
+  signedURL: String!
+  """Final URL the file will be accessible at after upload."""
+  uploadURL: String!
+}
+
+"""Status and result of a mutation transaction."""
+type TransactionStatus {
+  """Duration of the transaction in milliseconds."""
+  duration: Int
+  """ISO 8601 timestamp when the transaction ended."""
+  endedAt: String
+  id: String!
+  """Error or info message if applicable."""
+  message: String
+  """ISO 8601 timestamp when the transaction started."""
+  startedAt: String!
+  """Current status of the transaction."""
+  status: TransactionStatusEnum!
+}
+
+"""Input for targeting a specific block in structure queries."""
+input TargetBlock {
+  focus: Boolean
+  id: String!
+  label: String!
+}
+
+# ─── Root Operation Types ─────────────────────────────────────────────────────
+
+"""
+Root query type. Fields beyond the system fields (_sys, _agents,
+_componentInstances, _diff, _structure) are generated dynamically from each
+repository's content model. The content fields shown here (blog, settings)
+are from the canonical basehub-ai/basehub blog-template repository.
+"""
+type Query {
+  """Fetch a specific AI agent by ID."""
+  _agent(
+    """The ID of the agent."""
+    id: String!
+  ): _AgentStart
+
+  """Query all custom AI agents defined in the repository."""
+  _agents: _agents!
+
+  """
+  Query all component instances across the repository.
+  Supports filtering, ordering, and pagination per component type.
+  """
+  _componentInstances: _components!
+
+  """
+  JSON diff between the current branch and its head commit.
+  Useful for detecting content changes.
+  """
+  _diff(
+    """Return a simplified diff showing only item statuses."""
+    simplified: Boolean
+  ): JSON!
+
+  """
+  Repository content structure in JSON or XML format.
+  Used by BaseHub START and internal tooling.
+  """
+  _structure(
+    format: _StructureFormatEnum
+    resolveTargetsWith: _ResolveTargetsWithEnum
+    targetBlock: TargetBlock
+    withConstraints: Boolean
+    withIDs: Boolean
+    withTypeOptions: Boolean
+  ): JSON!
+
+  """Repository-level system metadata."""
+  _sys: RepoSys!
+
+  """Blog document block (example content model field)."""
+  blog(variants: Language__VariantsInput): Blog!
+
+  """Site settings document block (example content model field)."""
+  settings: Settings!
+}
+
+"""
+Root mutation type. All mutations require authentication via x-basehub-token.
+"""
+type Mutation {
+  """
+  Generate a signed upload URL for adding a file to the repository.
+  After uploading the file via PUT to signedURL, the file is accessible
+  at uploadURL.
+  """
+  getUploadSignedURL(
+    """SHA256 hash of the file, used to deduplicate existing files."""
+    fileHash: String
+    """The file name (required)."""
+    fileName: String!
+  ): GetUploadSignedURL!
+
+  """
+  Execute a synchronous mutation transaction. Blocks until the transaction
+  completes or times out. Internally runs transactionAsync and polls for
+  the result.
+  """
+  transaction(
+    """ID of the transaction author. Defaults to the API token identity."""
+    authorId: String
+    """Auto-commit the changes with this message."""
+    autoCommit: String
+    """Transaction payload (JSON string or Transaction object)."""
+    data: String!
+    """Skip workflow and event subscriber execution. Defaults to false."""
+    skipWorkflows: Boolean
+    """Timeout in milliseconds. Defaults to 30000."""
+    timeout: Int
+  ): TransactionStatus!
+
+  """
+  Start an asynchronous mutation transaction. Returns a transaction ID
+  that can be polled via transactionStatus.
+  """
+  transactionAsync(
+    authorId: String
+    autoCommit: String
+    """Transaction payload as a JSON string."""
+    data: String!
+    skipWorkflows: Boolean
+  ): String!
+
+  """Poll the status of a previously started transaction."""
+  transactionStatus(
+    """Transaction ID returned by transactionAsync."""
+    id: String!
+  ): TransactionStatus!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
