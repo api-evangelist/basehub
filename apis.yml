@@ -2,7 +2,7 @@ aid: basehub
 name: BaseHub
 description: "GraphQL-first documentation and content platform where content is queried via a TypeScript-native GraphQL client with full type safety generated from the content schema."
 type: Index
-image: https://kinlane-productions2.s3.amazonaws.com/apis-json/apis-json-logo.jpg
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
 url: https://basehub.com
 baseURL: https://api.basehub.com/graphql
 created: 2026-06-14
