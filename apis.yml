@@ -31,6 +31,8 @@ apis:
       - url: graphql/basehub-graphql.md
         type: GraphQL
 common:
+  - type: DomainSecurity
+    url: security/basehub-domain-security.yml
   - url: https://basehub.com
     type: Website
   - url: https://docs.basehub.com
@@ -47,6 +49,8 @@ common:
     type: RateLimits
   - url: finops/basehub-finops.md
     type: FinOps
+  - url: https://basehub.com/blog/rss.xml
+    type: Blog
 maintainers:
   - FN: Kin Lane
     email: kin@apievangelist.com
