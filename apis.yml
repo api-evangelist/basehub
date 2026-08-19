@@ -18,7 +18,7 @@ url: https://basehub.com
 baseURL: https://api.basehub.com/graphql
 created: 2026-06-14
 modified: 2026-06-14
-specificationVersion: '0.19'
+specificationVersion: '0.23'
 tags:
   - GraphQL
   - Headless CMS
