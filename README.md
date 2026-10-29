@@ -64,25 +64,93 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-BaseHub is an AI-native headless CMS built around a GraphQL-first API. Content is modeled in a visual dashboard and queried via a TypeScript-native SDK that generates a fully type-safe GraphQL client from the repository's content schema. BaseHub is optimized for modern JavaScript frameworks (Next.js, Astro, SvelteKit) and supports multiplayer editing, AI chat, webhooks, search, analytics, and asset management.
+GraphQL-first documentation and content platform where content is queried via a TypeScript-native GraphQL client with full type safety generated from the content schema.
 
-- **Website:** https://basehub.com
-- **Docs:** https://docs.basehub.com
-- **API Reference:** https://docs.basehub.com/api-reference
-- **GraphQL Endpoint:** https://api.basehub.com/graphql
-- **GitHub Org:** https://github.com/basehub-ai
-- **LinkedIn:** https://www.linkedin.com/company/basehubai
-- **Pricing:** https://basehub.com/pricing
+**Areas:** GraphQL · Headless CMS · Content Management · AI-Native · TypeScript
 
-## Repository Contents
+## BaseHub on APIs.io
 
-| Path | Description |
+Everything profiled for BaseHub is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/basehub/](https://apis.io/providers/basehub/)** — or go straight to one of the APIs or properties below.
+
+### APIs (1)
+
+- [BaseHub API](https://apis.io/apis/basehub/api/) — GraphQL API for programmatically querying and mutating content in BaseHub repositories. Authenticated via x-basehub-token header, with a TypeScript-native…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### GraphQL (1)
+
+GraphQL schemas.
+
+- [BaseHub GraphQL API](https://apis.io/graphqls/basehub/basehub-graphql/)
+
+#### Security (1)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Basehub Domain Security](https://apis.io/security/basehub/basehub-domain-security/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://basehub.com)
+- [Documentation](https://docs.basehub.com)
+- [Pricing](https://basehub.com/pricing)
+- [Blog](https://basehub.com/blog/rss.xml)
+- [GitHub](https://github.com/basehub-ai)
+
+## API Evangelist rating
+
+**Kin Score 20.1** — emerging · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
 |---|---|
-| `apis.yml` | APIs.io catalog entry for BaseHub |
-| `plans/basehub-plans.md` | Plan tiers, pricing, and overage rates |
-| `rate-limits/basehub-rate-limits.md` | API request quotas and authentication notes |
-| `finops/basehub-finops.md` | Cost-management reference and optimization tips |
+| Discoverability | 64.3 |
+| Contract quality | 39.4 |
+| Contract governance | 0.0 |
+| Operational transparency | 5.3 |
+| Developer ergonomics | 11.9 |
+| Access clarity | 10.5 |
 
-## Maintainer
+**Agent readiness 15.5** — agent-aware
 
-Kin Lane — kin@apievangelist.com
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | — |
+| Idempotency | — |
+| Error Semantics | — |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 5.9** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/basehub/](https://apis.io/providers/basehub/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for BaseHub: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/basehub/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
